@@ -43,6 +43,13 @@ public class Health : MonoBehaviour
             GameManager.Instance?.TriggerGameOver();
         }
 
+        // Если это враг - вызываем его метод Die() для анимации
+        EnemyAI enemy = GetComponent<EnemyAI>();
+        if (enemy != null) {
+            enemy.Die();
+            return; // EnemyAI сам удалит объект
+        }
+
         Destroy(gameObject);
     }
 

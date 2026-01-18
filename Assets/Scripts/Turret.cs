@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Turret : MonoBehaviour
+public class Turret : Building
 {
     [Header("Turret Stats")]
     public float attackRange = 5f;
@@ -13,10 +13,11 @@ public class Turret : MonoBehaviour
     public GameObject projectilePrefab; // Префаб снаряда (опционально)
 
     private Transform currentTarget;
-    private Health healthComponent;
 
-    void Start() {
-        healthComponent = GetComponent<Health>();
+    protected override void Start() {
+        base.Start();
+        
+        buildingType = BuildingType.Turret;
         fireTimer = 1f / fireRate;
     }
 

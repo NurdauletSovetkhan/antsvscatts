@@ -26,7 +26,8 @@ public class Projectile : MonoBehaviour
             direction = (target.position - transform.position).normalized;
             
             // Поворачиваем снаряд в сторону цели
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            // Для спрайтов, нарисованных боком, нужно добавить -90 градусов
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
             transform.rotation = Quaternion.Euler(0, 0, angle);
         }
     }
