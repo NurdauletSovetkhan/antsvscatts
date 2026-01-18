@@ -7,6 +7,7 @@ public enum BuildingType
     Barricade,
     AllyUnit
 }
+// sajdlksaj
 
 [System.Serializable]
 public class BuildingData
