@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c91afa52b380ec740ac2c6634e6a38cf, type: 3}
+  m_Name: Data_Carrot
+  m_EditorClassIdentifier: Assembly-CSharp::CropData
+  cropName: 
+  icon: {fileID: 21300000, guid: f2c50504d7db1cd4d8df1e3bb31d78e2, type: 3}
+  seedCost: 5
+  growthStages:
+  - {fileID: 6393031248781673410, guid: 725ff166f82817b479a90d54cdb5bb1b, type: 3}
+  - {fileID: 6147072761198093503, guid: b756b701e3e86d949a66b1b6092de640, type: 3}
+  - {fileID: 6147072761198093503, guid: aad4f08427a53914e88efee4f8848f42, type: 3}
+  - {fileID: 6147072761198093503, guid: c55afea89f42a3d4cbde44afe9edfa57, type: 3}
+  harvestVFX: {fileID: 3211051990602412518, guid: b22c0b7ba7feb1a4194738232d7a049d, type: 3}
+  produce: {fileID: 8966544202626773991, guid: 2e0831dc56cf5294a8962622c990f6bd, type: 3}
+  timeBetweenStages: 2
