@@ -357,11 +357,11 @@ GameObject:
   m_Component:
   - component: {fileID: 203501270}
   - component: {fileID: 203501269}
-  - component: {fileID: 203501268}
+  - component: {fileID: 203501271}
   - component: {fileID: 203501267}
   m_Layer: 0
-  m_Name: ResourcePot
-  m_TagString: ResourcePot
+  m_Name: Farm
+  m_TagString: Farm
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -412,25 +412,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &203501268
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 203501266}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6ec59ba908b5dd74898fd11a6c133c7c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ResourcePot
-  minResourcesPerNight: 2
-  maxResourcesPerNight: 5
-  resourceIndicatorPrefab: {fileID: 0}
-  resourceSpawnPoint: {fileID: 2125492072}
-  potRenderer: {fileID: 203501269}
-  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  fullColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!212 &203501269
 SpriteRenderer:
   serializedVersion: 2
@@ -506,6 +487,25 @@ Transform:
   - {fileID: 2125492072}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &203501271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 203501266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a667e650879f64142ae75da4f31e0c90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Farm
+  minBiomassPerNight: 2
+  maxBiomassPerNight: 5
+  biomassIndicatorPrefab: {fileID: 0}
+  biomassSpawnPoint: {fileID: 0}
+  farmRenderer: {fileID: 0}
+  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  fullColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &278882063
 GameObject:
   m_ObjectHideFlags: 0
@@ -1895,7 +1895,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HorrorManager
   isHorrorMode: 0
   postProcessVolume: {fileID: 0}
-  horrorColor: {r: 0.29, g: 0, b: 0, a: 1}
+  horrorColor:
+    r: 0.29
+    g: 0
+    b: 0
+    a: 1
   enemySpeedMultiplier: 1.5
   turretDamageMultiplier: 1.3
 --- !u!4 &1215770004

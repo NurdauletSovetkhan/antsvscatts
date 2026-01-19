@@ -4,7 +4,7 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    public GameObject enemyPrefab;
+    public GameObject[] enemyPrefabs; // Массив разных типов врагов
     public Transform[] spawnPoints; // Массив точек спавна
     public int enemiesPerWave = 10;
     
@@ -59,10 +59,13 @@ public class EnemySpawner : MonoBehaviour
     }
 
     void SpawnEnemy() {
-        if (enemyPrefab == null) {
-            Debug.LogWarning("Enemy Prefab is not assigned!");
+        if (enemyPrefabs == null || enemyPrefabs.Length == 0) {
+            Debug.LogWarning("Enemy Prefabs array is empty!");
             return;
         }
+
+        // Выбираем случайного врага из массива
+        GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
 
         Vector3 spawnPosition;
 

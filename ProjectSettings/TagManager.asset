@@ -9,8 +9,8 @@ TagManager:
   - Turret
   - Pot
   - Resource
-  - ResourcePot
   - Barricade
+  - Farm
   layers:
   - Default
   - TransparentFX

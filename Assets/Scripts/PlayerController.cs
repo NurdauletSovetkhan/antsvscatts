@@ -54,7 +54,7 @@ public class PlayerController : MonoBehaviour
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, interactRange);
         
         foreach (Collider2D hit in hits) {
-            if (hit.CompareTag("Pot") || hit.CompareTag("Resource") || hit.CompareTag("ResourcePot")) {
+            if (hit.CompareTag("Pot") || hit.CompareTag("Farm")) {
                 nearestInteractable = hit.gameObject;
                 return;
             }
@@ -71,14 +71,9 @@ public class PlayerController : MonoBehaviour
             PlantTurret(nearestInteractable);
         }
 
-        // Взаимодействие с ResourcePot (ферма ресурсов)
-        if (nearestInteractable.CompareTag("ResourcePot")) {
-            CollectFromResourcePot(nearestInteractable);
-        }
-
-        // Взаимодействие с обычными ресурсами
-        if (nearestInteractable.CompareTag("Resource")) {
-            CollectResource(nearestInteractable);
+        // Взаимодействие с фермой (сбор биомассы)
+        if (nearestInteractable.CompareTag("Farm")) {
+            CollectFromFarm(nearestInteractable);
         }
     }
 
@@ -103,22 +98,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void CollectResource(GameObject resource) {
-        // Собираем ресурс
-        ResourceManager.Instance.AddBiomass(3);
-        Destroy(resource);
-        Debug.Log("Resource collected!");
-    }
-
-    void CollectFromResourcePot(GameObject pot) {
-        ResourcePot resourcePot = pot.GetComponent<ResourcePot>();
+    void CollectFromFarm(GameObject farmObject) {
+        Farm farm = farmObject.GetComponent<Farm>();
         
-        if (resourcePot != null && resourcePot.HasResources()) {
-            int amount = resourcePot.CollectResources();
+        if (farm != null && farm.HasBiomass()) {
+            int amount = farm.CollectBiomass();
             ResourceManager.Instance.AddBiomass(amount);
-            Debug.Log($"Collected {amount} biomass from farm pot!");
+            Debug.Log($"[Player] Collected {amount} biomass from farm!");
         } else {
-            Debug.Log("No resources to collect from this pot.");
+            Debug.Log("[Player] No biomass to collect from this farm.");
         }
     }
 

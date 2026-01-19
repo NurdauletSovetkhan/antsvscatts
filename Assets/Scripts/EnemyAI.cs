@@ -2,32 +2,65 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
-    [Header("Movement")]
-    public float moveSpeed = 2f;
+    [Header("Enemy Data")]
+    public EnemyData enemyData; // ScriptableObject с характеристиками
+    
+    [Header("Runtime Stats")]
+    private float moveSpeed;
+    private float attackDamage;
+    private float attackCooldown;
     private Transform target; // Цель (обычно холодильник)
-
-    [Header("Attack")]
-    public float attackDamage = 5f;
-    public float attackCooldown = 1f;
     private float attackTimer;
+    private int biomassDropAmount;
 
-    [Header("Drops")]
-    public int biomassDropAmount = 3;
+    [Header("Shooting (для Shooting типа)")]
+    private float shootTimer;
+    private bool isShooting = false;
 
-    [Header("Animation")]
+    [Header("Components")]
     private Animator animator;
     private SpriteRenderer spriteRenderer;
-
     private Rigidbody2D rb;
     private Health healthComponent;
+    
+    [Header("State")]
     private bool isAttacking = false;
     private bool isDead = false;
+    private float distanceToTarget;
+    
+    [Header("Target Priority")]
+    private float retargetTimer = 0f;
+    private float retargetInterval = 1f; // Переоценка цели каждую секунду
 
     void Start() {
         rb = GetComponent<Rigidbody2D>();
         healthComponent = GetComponent<Health>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // Инициализируем характеристики из EnemyData
+        if (enemyData != null) {
+            moveSpeed = enemyData.moveSpeed;
+            attackDamage = enemyData.attackDamage;
+            attackCooldown = enemyData.attackCooldown;
+            biomassDropAmount = Random.Range(enemyData.biomassDropMin, enemyData.biomassDropMax + 1);
+            
+            // Устанавливаем здоровье
+            if (healthComponent != null) {
+                healthComponent.maxHealth = enemyData.maxHealth;
+                healthComponent.currentHealth = enemyData.maxHealth;
+            }
+            
+            // Визуальные настройки
+            if (spriteRenderer != null) {
+                spriteRenderer.color = enemyData.tintColor;
+            }
+            transform.localScale = Vector3.one * enemyData.scale;
+            
+            Debug.Log($"[EnemyAI] {enemyData.enemyName} spawned! HP: {enemyData.maxHealth}, Speed: {moveSpeed}, Damage: {attackDamage}");
+        } else {
+            Debug.LogError($"[EnemyAI] No EnemyData assigned to {gameObject.name}!");
+        }
 
         if (animator == null) {
             Debug.LogWarning($"[EnemyAI] No Animator on {gameObject.name}!");
@@ -38,13 +71,8 @@ public class EnemyAI : MonoBehaviour
             healthComponent.OnHealthChanged += OnHealthChanged;
         }
 
-        // Ищем базу (холодильник)
-        GameObject baseObject = GameObject.FindGameObjectWithTag("Base");
-        if (baseObject != null) {
-            target = baseObject.transform;
-        } else {
-            Debug.LogWarning("Base not found! Enemy has no target.");
-        }
+        // Ищем первую цель по приоритету
+        FindBestTarget();
         
         // Начинаем с Idle анимации
         SetIdleAnimation();
@@ -53,25 +81,66 @@ public class EnemyAI : MonoBehaviour
     void Update() {
         if (isDead) return; // Мертвый враг не двигается
         
-        if (target == null || isAttacking) {
+        // Периодически переоцениваем цель
+        retargetTimer -= Time.deltaTime;
+        if (retargetTimer <= 0f) {
+            FindBestTarget();
+            retargetTimer = retargetInterval;
+        }
+        
+        if (target == null) {
+            SetIdleAnimation();
+            return;
+        }
+
+        // Рассчитываем расстояние до цели
+        distanceToTarget = Vector2.Distance(transform.position, target.position);
+
+        // Если это стреляющий враг и цель в пределах дальности - стреляем
+        if (enemyData != null && enemyData.canShoot && distanceToTarget <= enemyData.shootRange) {
+            isShooting = true;
+            isAttacking = false; // Не идём в ближний бой
+            SetIdleAnimation();
+            
+            // Логика стрельбы
+            shootTimer -= Time.deltaTime;
+            if (shootTimer <= 0f) {
+                ShootProjectile();
+                shootTimer = enemyData.shootCooldown;
+            }
+            
+            // Поворачиваем в сторону цели
+            Vector2 direction = (target.position - transform.position).normalized;
+            FaceDirection(direction);
+            
+            return;
+        }
+
+        // Если в режиме ближней атаки - не двигаемся
+        if (isAttacking) {
             SetIdleAnimation();
             return;
         }
 
         // Двигаемся к цели
-        Vector2 direction = (target.position - transform.position).normalized;
-        rb.MovePosition(rb.position + direction * moveSpeed * Time.deltaTime);
+        Vector2 moveDirection = (target.position - transform.position).normalized;
+        rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.deltaTime);
         
         // Поворачиваем муравья в сторону движения
-        FaceDirection(direction);
+        FaceDirection(moveDirection);
         
         // Включаем анимацию ходьбы
         SetWalkAnimation();
     }
 
     void OnTriggerEnter2D(Collider2D collision) {
-        // Если наткнулся на базу или турель - начинаем атаковать
-        if (collision.CompareTag("Base") || collision.CompareTag("Turret")) {
+        // Если наткнулся на цель - начинаем атаковать
+        if (collision.CompareTag("Base") || 
+            collision.CompareTag("Turret") || 
+            collision.CompareTag("Barricade") ||
+            collision.CompareTag("Player") ||
+            collision.CompareTag("Farm")) {
+            
             isAttacking = true;
             target = collision.transform;
             SetIdleAnimation(); // Останавливаемся
@@ -80,7 +149,12 @@ public class EnemyAI : MonoBehaviour
 
     void OnTriggerStay2D(Collider2D collision) {
         // Атакуем объект
-        if (isAttacking && (collision.CompareTag("Base") || collision.CompareTag("Turret"))) {
+        if (isAttacking && (collision.CompareTag("Base") || 
+                            collision.CompareTag("Turret") || 
+                            collision.CompareTag("Barricade") ||
+                            collision.CompareTag("Player") ||
+                            collision.CompareTag("Farm"))) {
+            
             attackTimer -= Time.deltaTime;
 
             if (attackTimer <= 0f) {
@@ -96,11 +170,8 @@ public class EnemyAI : MonoBehaviour
             isAttacking = false;
             SetIdleAnimation();
             
-            // Находим новую цель (базу)
-            GameObject baseObject = GameObject.FindGameObjectWithTag("Base");
-            if (baseObject != null) {
-                target = baseObject.transform;
-            }
+            // Ищем новую цель по приоритету
+            FindBestTarget();
         }
     }
 
@@ -125,9 +196,105 @@ public class EnemyAI : MonoBehaviour
 
     void OnDestroy() {
         // Дропаем биомассу при смерти
-        if (ResourceManager.Instance != null && !isDead) {
+        if (ResourceManager.Instance != null && isDead) {
             ResourceManager.Instance.AddBiomass(biomassDropAmount);
+            Debug.Log($"[EnemyAI] {gameObject.name} dropped {biomassDropAmount} biomass!");
         }
+    }
+    
+    // === СИСТЕМА ПРИОРИТЕТОВ ЦЕЛЕЙ ===
+    
+    void FindBestTarget() {
+        // Гоблины атакуют только фермы
+        if (enemyData != null && enemyData.enemyType == EnemyType.Goblin) {
+            FindNearestFarm();
+            return;
+        }
+        
+        // Приоритет 1: Баррикада на пути (в радиусе 5 юнитов)
+        GameObject[] barricades = GameObject.FindGameObjectsWithTag("Barricade");
+        GameObject closestBarricade = null;
+        float closestBarricadeDistance = 5f; // Радиус обнаружения баррикады
+        
+        foreach (GameObject barricade in barricades) {
+            if (barricade == null) continue;
+            
+            float distance = Vector2.Distance(transform.position, barricade.transform.position);
+            if (distance < closestBarricadeDistance) {
+                closestBarricadeDistance = distance;
+                closestBarricade = barricade;
+            }
+        }
+        
+        if (closestBarricade != null) {
+            target = closestBarricade.transform;
+            Debug.Log($"[EnemyAI] {enemyData.enemyName} targeting barricade at distance {closestBarricadeDistance}");
+            return;
+        }
+        
+        // Приоритет 2: Игрок (если жив)
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null) {
+            Health playerHealth = player.GetComponent<Health>();
+            if (playerHealth != null && playerHealth.IsAlive()) {
+                target = player.transform;
+                Debug.Log($"[EnemyAI] {enemyData.enemyName} targeting player");
+                return;
+            }
+        }
+        
+        // Приоритет 3: Холодильник (база)
+        GameObject baseObject = GameObject.FindGameObjectWithTag("Base");
+        if (baseObject != null) {
+            target = baseObject.transform;
+            Debug.Log($"[EnemyAI] {enemyData.enemyName} targeting base (fridge)");
+        } else {
+            Debug.LogWarning("[EnemyAI] No valid target found!");
+        }
+    }
+    
+    void FindNearestFarm() {
+        GameObject[] farms = GameObject.FindGameObjectsWithTag("Farm");
+        GameObject closestFarm = null;
+        float closestDistance = Mathf.Infinity;
+        
+        foreach (GameObject farm in farms) {
+            if (farm == null) continue;
+            
+            float distance = Vector2.Distance(transform.position, farm.transform.position);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestFarm = farm;
+            }
+        }
+        
+        if (closestFarm != null) {
+            target = closestFarm.transform;
+            Debug.Log($"[EnemyAI] Goblin targeting farm at distance {closestDistance}");
+        } else {
+            Debug.LogWarning("[EnemyAI] Goblin found no farms! Idling...");
+            target = null;
+        }
+    }
+    
+    // === МЕТОД СТРЕЛЬБЫ ===
+    
+    void ShootProjectile() {
+        if (enemyData == null || enemyData.projectilePrefab == null) return;
+        
+        SetAttackAnimation(); // Анимация атаки
+        
+        // Создаём снаряд
+        GameObject projectile = Instantiate(enemyData.projectilePrefab, transform.position, Quaternion.identity);
+        
+        // Настраиваем снаряд
+        EnemyProjectile enemyProj = projectile.GetComponent<EnemyProjectile>();
+        if (enemyProj != null) {
+            enemyProj.damage = attackDamage;
+            enemyProj.SetTarget(target.position);
+        }
+        
+        Debug.Log($"[EnemyAI] {enemyData.enemyName} shot projectile at {target.name}!");
     }
     
     // === МЕТОДЫ АНИМАЦИИ ===
