@@ -104,7 +104,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3706020405374340222}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -137,6 +137,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
   currentHealth: 0
+  damageIndicatorPrefab: {fileID: 7151791119007757751, guid: e6b286df01a43d94abb1aade68d16806, type: 3}
+  indicatorOffset: {x: 0, y: 1, z: 0}
 --- !u!114 &5722931346267578507
 MonoBehaviour:
   m_ObjectHideFlags: 0

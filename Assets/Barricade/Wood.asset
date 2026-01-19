@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38364fc5faf708845bd9e74310022334, type: 3}
+  m_Name: Wood
+  m_EditorClassIdentifier: Assembly-CSharp::BarricadeData
+  barricadeName: Wood Barricade
+  barricadeType: 1
+  maxHealth: 65
+  cost: 35
+  icon: {fileID: 0}
+  sprite: {fileID: -7104956498802772965, guid: bbfa6c0a2cb0bd4428b99dec6ff12cbd, type: 3}
+  tintColor: {r: 1, g: 1, b: 1, a: 1}
+  scale: 0.5
+  description: 

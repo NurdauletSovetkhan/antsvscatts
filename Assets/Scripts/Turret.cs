@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Turret : Building
 {
+    [Header("Turret Data")]
+    public TurretData turretData; // ScriptableObject с характеристиками
+    
     [Header("Turret Stats")]
     public float attackRange = 5f;
     public float damage = 10f;
@@ -11,6 +14,10 @@ public class Turret : Building
     [Header("Visual")]
     public Transform firePoint; // Точка, откуда летит снаряд
     public GameObject projectilePrefab; // Префаб снаряда (опционально)
+    
+    [Header("Animation")]
+    private Animator animator;
+    private bool shouldShoot = false; // Флаг для синхронизации с анимацией
 
     private Transform currentTarget;
 
@@ -18,7 +25,34 @@ public class Turret : Building
         base.Start();
         
         buildingType = BuildingType.Turret;
+        
+        // Инициализируем из TurretData если назначен
+        if (turretData != null) {
+            attackRange = turretData.attackRange;
+            damage = turretData.damage;
+            fireRate = turretData.fireRate;
+            projectilePrefab = turretData.projectilePrefab;
+            
+            // Визуальные настройки
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            if (sr != null) {
+                if (turretData.sprite != null) {
+                    sr.sprite = turretData.sprite;
+                }
+                sr.color = turretData.tintColor;
+            }
+            
+            transform.localScale = Vector3.one * turretData.scale;
+            
+            Debug.Log($"[Turret] {turretData.turretName} created! Damage: {damage}, FireRate: {fireRate}, Range: {attackRange}");
+        }
+        
         fireTimer = 1f / fireRate;
+        
+        animator = GetComponent<Animator>();
+        if (animator == null) {
+            Debug.LogWarning($"[Turret] No Animator on {gameObject.name}!");
+        }
     }
 
     void Update() {
@@ -66,12 +100,33 @@ public class Turret : Building
         fireTimer -= Time.deltaTime;
 
         if (fireTimer <= 0f) {
-            Fire();
+            // Триггерим анимацию стрельбы
+            if (animator != null) {
+                animator.SetTrigger("Shooting");
+            }
+            
+            // Флаг для вызова из Animation Event
+            shouldShoot = true;
+            
+            // Если нет аниматора - стреляем сразу
+            if (animator == null) {
+                FireProjectile();
+                shouldShoot = false;
+            }
+            
             fireTimer = 1f / fireRate;
         }
     }
+    
+    // Этот метод вызывается через Animation Event!
+    public void OnShootAnimationEvent() {
+        if (shouldShoot) {
+            FireProjectile();
+            shouldShoot = false;
+        }
+    }
 
-    void Fire() {
+    void FireProjectile() {
         if (currentTarget == null) {
             Debug.LogWarning("Turret: No target to fire at!");
             return;

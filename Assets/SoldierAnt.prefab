@@ -137,6 +137,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
   currentHealth: 0
+  damageIndicatorPrefab: {fileID: 7151791119007757751, guid: e6b286df01a43d94abb1aade68d16806, type: 3}
+  indicatorOffset: {x: 0, y: 0.5, z: 0}
 --- !u!114 &8126556479690957495
 MonoBehaviour:
   m_ObjectHideFlags: 0

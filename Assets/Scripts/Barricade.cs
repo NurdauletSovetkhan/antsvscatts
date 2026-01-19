@@ -3,8 +3,8 @@ using UnityEngine;
 // Баррикада - простая стена для блокировки врагов
 public class Barricade : Building
 {
-    [Header("Barricade Settings")]
-    public float maxHealth = 200f;
+    [Header("Barricade Data")]
+    public BarricadeData barricadeData;
     
     [Header("Visual")]
     public SpriteRenderer spriteRenderer;
@@ -20,9 +20,35 @@ public class Barricade : Building
             spriteRenderer = GetComponent<SpriteRenderer>();
         }
 
-        // Устанавливаем здоровье
-        if (healthComponent != null) {
-            healthComponent.maxHealth = maxHealth;
+        // Устанавливаем характеристики из BarricadeData ПЕРЕД Health.Start()
+        // Используем Awake для гарантии порядка выполнения
+        InitializeFromData();
+    }
+    
+    void InitializeFromData() {
+        if (barricadeData != null) {
+            if (healthComponent != null) {
+                healthComponent.maxHealth = barricadeData.maxHealth;
+                healthComponent.currentHealth = barricadeData.maxHealth; // Устанавливаем сразу
+            }
+            
+            // Визуальные настройки
+            if (spriteRenderer != null) {
+                if (barricadeData.sprite != null) {
+                    spriteRenderer.sprite = barricadeData.sprite;
+                }
+                spriteRenderer.color = barricadeData.tintColor;
+            }
+            
+            transform.localScale = Vector3.one * barricadeData.scale;
+            
+            Debug.Log($"[Barricade] {barricadeData.barricadeName} placed! HP: {barricadeData.maxHealth}");
+        } else {
+            // Fallback на старые настройки если нет BarricadeData
+            if (healthComponent != null) {
+                healthComponent.maxHealth = 200f;
+                healthComponent.currentHealth = 200f;
+            }
         }
     }
 

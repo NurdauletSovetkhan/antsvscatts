@@ -7,6 +7,10 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     private Vector2 moveInput;
     private Rigidbody2D rb;
+    
+    [Header("Animation")]
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
 
     [Header("Interaction")]
     public float interactRange = 1.5f;
@@ -18,12 +22,15 @@ public class PlayerController : MonoBehaviour
 
     void Start() {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void Update() {
         HandleMovementInput();
         HandleInteractionInput();
         CheckForInteractables();
+        UpdateAnimation();
     }
 
     void HandleMovementInput() {
@@ -113,6 +120,26 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate() {
         // Двигаем кота без лишней физики (как в Brotato)
         rb.MovePosition(rb.position + moveInput.normalized * moveSpeed * Time.fixedDeltaTime);
+    }
+    
+    void UpdateAnimation() {
+        // Проверяем, двигается ли игрок
+        bool isWalking = moveInput.magnitude > 0.1f;
+        
+        if (animator != null) {
+            animator.SetBool("isWalking", isWalking);
+        }
+        
+        // Поворачиваем спрайт в сторону движения
+        if (spriteRenderer != null && moveInput.magnitude > 0.1f) {
+            if (moveInput.x > 0.1f) {
+                // Движется вправо
+                spriteRenderer.flipX = false;
+            } else if (moveInput.x < -0.1f) {
+                // Движется влево
+                spriteRenderer.flipX = true;
+            }
+        }
     }
 
     // Визуализация радиуса взаимодействия

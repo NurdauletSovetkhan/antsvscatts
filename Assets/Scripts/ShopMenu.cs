@@ -10,6 +10,11 @@ public class ShopMenu : MonoBehaviour {
     public GameObject shopPanel; // Полноэкранная панель магазина
     public Transform itemsContainer; // Контейнер для товаров
     public Button closeButton; // Кнопка закрытия
+    
+    [Header("Shop Items")]
+    public TurretData[] turretDataList; // 3 турели
+    public BarricadeData[] barricadeDataList; // 3 баррикады
+    public BuildingData allyUnitData; // Союзник кот
 
     private bool isOpen = false;
 
@@ -121,11 +126,6 @@ public class ShopMenu : MonoBehaviour {
     void CreateShopItems() {
         Debug.Log("[ShopMenu] CreateShopItems called");
         
-        if (BuildingManager.Instance == null) {
-            Debug.LogError("[ShopMenu] BuildingManager.Instance is NULL!");
-            return;
-        }
-        
         if (itemsContainer == null) {
             Debug.LogError("[ShopMenu] itemsContainer is NULL!");
             return;
@@ -136,12 +136,31 @@ public class ShopMenu : MonoBehaviour {
             Destroy(child.gameObject);
         }
 
-        Debug.Log($"[ShopMenu] Creating shop items. Available buildings: {BuildingManager.Instance.availableBuildings.Count}");
-        
-        // Создаём карточку товара для КАЖДОЙ постройки
         int itemCount = 0;
-        foreach (BuildingData building in BuildingManager.Instance.availableBuildings) {
-            CreateShopItem(building);
+        
+        // === ТУРЕЛИ ===
+        if (turretDataList != null && turretDataList.Length > 0) {
+            foreach (TurretData turret in turretDataList) {
+                if (turret != null) {
+                    CreateTurretItem(turret);
+                    itemCount++;
+                }
+            }
+        }
+        
+        // === БАРРИКАДЫ ===
+        if (barricadeDataList != null && barricadeDataList.Length > 0) {
+            foreach (BarricadeData barricade in barricadeDataList) {
+                if (barricade != null) {
+                    CreateBarricadeItem(barricade);
+                    itemCount++;
+                }
+            }
+        }
+        
+        // === СОЮЗНИКИ ===
+        if (allyUnitData != null) {
+            CreateAllyItem(allyUnitData);
             itemCount++;
         }
         
@@ -242,7 +261,136 @@ public class ShopMenu : MonoBehaviour {
         if (success) {
             Debug.Log($"[ShopMenu] ✅ Successfully bought {building.buildingName}!");
         } else {
-            Debug.LogWarning($"[ShopMenu] ❌ Failed to buy {building.buildingName}!");
+            Debug.Log($"[ShopMenu] ❌ Failed to buy {building.buildingName} (not enough biomass)");
+        }
+    }
+    
+    // === НОВЫЕ МЕТОДЫ ДЛЯ КАТЕГОРИЙ ===
+    
+    void CreateCategoryHeader(string categoryName) {
+        GameObject headerObj = new GameObject($"Header_{categoryName}");
+        headerObj.transform.SetParent(itemsContainer, false);
+        
+        RectTransform headerRect = headerObj.AddComponent<RectTransform>();
+        headerRect.sizeDelta = new Vector2(700, 50);
+        
+        TextMeshProUGUI headerText = headerObj.AddComponent<TextMeshProUGUI>();
+        headerText.text = categoryName;
+        headerText.fontSize = 32;
+        headerText.fontStyle = FontStyles.Bold;
+        headerText.alignment = TextAlignmentOptions.Center;
+        headerText.color = Color.white;
+        headerText.margin = new Vector4(0, 15, 0, 5);
+        
+        // Подчеркивание
+        headerText.fontStyle = FontStyles.Bold | FontStyles.Underline;
+    }
+    
+    void CreateTurretItem(TurretData turret) {
+        GameObject itemObj = CreateItemCard(turret.turretName, turret.icon, turret.cost);
+        
+        // Кнопка покупки
+        AddBuyButton(itemObj, turret.cost, () => {
+            Debug.Log($"[ShopMenu] Buying {turret.turretName}");
+            // TODO: Создать префаб турели и добавить в инвентарь
+        });
+    }
+    
+    void CreateBarricadeItem(BarricadeData barricade) {
+        GameObject itemObj = CreateItemCard(barricade.barricadeName, barricade.icon, barricade.cost);
+        
+        // Кнопка покупки
+        AddBuyButton(itemObj, barricade.cost, () => {
+            Debug.Log($"[ShopMenu] Buying {barricade.barricadeName}");
+            // TODO: Создать префаб баррикады и добавить в инвентарь
+        });
+    }
+    
+    void CreateAllyItem(BuildingData ally) {
+        GameObject itemObj = CreateItemCard(ally.buildingName, ally.icon, ally.cost);
+        
+        AddBuyButton(itemObj, ally.cost, () => {
+            Debug.Log($"[ShopMenu] Buying {ally.buildingName}");
+            if (InventoryManager.Instance != null) {
+                InventoryManager.Instance.BuyBuilding(ally);
+            }
+        });
+    }
+    
+    GameObject CreateItemCard(string itemName, Sprite icon, int cost) {
+        GameObject itemObj = new GameObject($"Item_{itemName}");
+        itemObj.transform.SetParent(itemsContainer, false);
+        
+        RectTransform itemRect = itemObj.AddComponent<RectTransform>();
+        itemRect.sizeDelta = new Vector2(200, 200);
+        
+        // Прозрачный фон (все будет на bg image)
+        Image bgImg = itemObj.AddComponent<Image>();
+        bgImg.color = new Color(1f, 1f, 1f, 0f); // Полностью прозрачный
+        bgImg.raycastTarget = false; // Не блокируем клики
+        
+        return itemObj;
+    }
+    
+    void AddStat(GameObject parent, string statText) {
+        GameObject statObj = new GameObject("Stat");
+        statObj.transform.SetParent(parent.transform, false);
+        
+        TextMeshProUGUI stat = statObj.AddComponent<TextMeshProUGUI>();
+        stat.text = statText;
+        stat.fontSize = 11;
+        stat.alignment = TextAlignmentOptions.Center;
+        stat.color = Color.gray;
+        
+        RectTransform statRect = statObj.GetComponent<RectTransform>();
+        // Позиционирование будет автоматическим через Layout Group в Unity
+        statRect.anchorMin = new Vector2(0, 0);
+        statRect.anchorMax = new Vector2(1, 0.5f);
+    }
+    
+    void AddBuyButton(GameObject parent, int cost, System.Action onBuy) {
+        // Кнопка Buy внизу карточки
+        GameObject btnObj = new GameObject("BuyButton");
+        btnObj.transform.SetParent(parent.transform, false);
+        
+        RectTransform btnRect = btnObj.AddComponent<RectTransform>();
+        btnRect.anchorMin = new Vector2(0.1f, 0.05f);
+        btnRect.anchorMax = new Vector2(0.9f, 0.25f);
+        btnRect.offsetMin = Vector2.zero;
+        btnRect.offsetMax = Vector2.zero;
+        
+        Image btnImg = btnObj.AddComponent<Image>();
+        btnImg.raycastTarget = true;
+        
+        Button buyButton = btnObj.AddComponent<Button>();
+        buyButton.targetGraphic = btnImg;
+        
+        // Текст кнопки
+        GameObject btnTextObj = new GameObject("Text");
+        btnTextObj.transform.SetParent(btnObj.transform, false);
+        
+        TextMeshProUGUI btnText = btnTextObj.AddComponent<TextMeshProUGUI>();
+        btnText.text = "BUY";
+        btnText.fontSize = 20;
+        btnText.fontStyle = FontStyles.Bold;
+        btnText.alignment = TextAlignmentOptions.Center;
+        btnText.color = Color.white;
+        
+        RectTransform btnTextRect = btnTextObj.GetComponent<RectTransform>();
+        btnTextRect.anchorMin = Vector2.zero;
+        btnTextRect.anchorMax = Vector2.one;
+        btnTextRect.offsetMin = Vector2.zero;
+        btnTextRect.offsetMax = Vector2.zero;
+        
+        // Проверяем ресурсы и устанавливаем цвет
+        bool canAfford = ResourceManager.Instance != null && ResourceManager.Instance.currentBiomass >= cost;
+        
+        if (canAfford) {
+            btnImg.color = new Color(0.2f, 0.8f, 0.2f, 1f); // Зеленая
+            buyButton.onClick.AddListener(() => onBuy());
+        } else {
+            btnImg.color = new Color(0.8f, 0.2f, 0.2f, 1f); // Красная
+            buyButton.interactable = false; // Отключаем кнопку
         }
     }
 

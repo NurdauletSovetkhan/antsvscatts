@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2387105102759029600}
   - component: {fileID: 624804727291334287}
   m_Layer: 0
-  m_Name: Barricade
+  m_Name: Barricade_Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,8 +29,8 @@ Transform:
   m_GameObject: {fileID: 8326833148856073297}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.94, y: -3.9, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 1.66, y: -2.65, z: 0}
+  m_LocalScale: {x: 0.3385, y: 0.3385, z: 0.3385}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -82,14 +82,14 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: 2957467145735592238, guid: 3f0b5a8c7e16b604cad477c4eb9dc912, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 4.93, y: 4.93}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -107,6 +107,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 200
+  currentHealth: 0
+  damageIndicatorPrefab: {fileID: 0}
+  indicatorOffset: {x: 0, y: 0.5, z: 0}
 --- !u!114 &2387105102759029600
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -120,9 +123,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Barricade
   buildingType: 0
-  buildCost: 0
-  maxHealth: 200
-  spriteRenderer: {fileID: 0}
+  buildCost: 2
+  barricadeData: {fileID: 11400000, guid: 4f3f05979dd1d3642a06ad8ade86016d, type: 2}
+  spriteRenderer: {fileID: 5464101949778165530}
   normalColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   damagedColor: {r: 0.5, g: 0.3, b: 0.3, a: 1}
 --- !u!61 &624804727291334287
@@ -163,8 +166,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
+    oldSize: {x: 4.93, y: 4.93}
+    newSize: {x: 4.93, y: 4.93}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0

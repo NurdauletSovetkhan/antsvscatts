@@ -74,6 +74,9 @@ public class EnemyAI : MonoBehaviour
         // Ищем первую цель по приоритету
         FindBestTarget();
         
+        // Инициализируем таймер атаки
+        attackTimer = attackCooldown;
+        
         // Начинаем с Idle анимации
         SetIdleAnimation();
     }
@@ -118,7 +121,7 @@ public class EnemyAI : MonoBehaviour
 
         // Если в режиме ближней атаки - не двигаемся
         if (isAttacking) {
-            SetIdleAnimation();
+            // НЕ вызываем SetIdleAnimation() здесь - пусть играет анимация атаки!
             return;
         }
 
