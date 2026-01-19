@@ -5,7 +5,7 @@ public class Health : MonoBehaviour
 {
     [Header("Health Settings")]
     public float maxHealth = 100f;
-    private float currentHealth;
+    public float currentHealth;
 
     // События
     public static event Action<GameObject> OnDeath; // Уведомляет о смерти объекта
